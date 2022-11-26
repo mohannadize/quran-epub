@@ -1,0 +1,18 @@
+{
+  "name": "quran",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node createEbook.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mohanad Hesham",
+  "license": "MIT",
+  "dependencies": {
+    "image-to-uri": "^1.0.0",
+    "nodepub-lite": "^1.2.3",
+    "puppeteer": "16.2"
+  }
+}
