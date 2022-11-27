@@ -88,10 +88,13 @@ p.normalText {
 }
 
 a.aya {
-  all: inherit;
-  display: inline;
   margin-left: 5px;
   margin-right: 5px;
+}
+
+a.aya, a.aya > span {
+  text-decoration: none !important;
+  color: initial !important;
 }
 `);
 
@@ -112,7 +115,7 @@ quran.forEach(({ id, title, ayas }) => {
     .map((text, i) => {
       return `<a id="aya-${
         i + 1
-      }" href="chapter-${id}-tafsir.xhtml#aya-${i + 1}-tafsir" class='aya'>${text}</a>`;
+      }" href="chapter-${id}-tafsir.xhtml#aya-${i + 1}-tafsir" class='aya'><span>${text}</span></a>`;
     })
     .join("\n")}
   </p>
@@ -154,7 +157,7 @@ tafsir.forEach(({ id, title, tafsir }) => {
     .map((text, i) => {
       return `<a id="aya-${
         i + 1
-      }-tafsir" href="chapter-${id}.xhtml#aya-${i + 1}" class="aya">${text}</a>`;
+      }-tafsir" href="chapter-${id}.xhtml#aya-${i + 1}" class="aya"><span>${text}</span></a>`;
     })
     .join("\n")}
   </p>
