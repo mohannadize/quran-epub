@@ -93,8 +93,8 @@ a.aya {
 }
 
 a.aya, a.aya > span {
-  text-decoration: none !important;
-  color: initial !important;
+  text-decoration: none;
+  color: currentColor;
 }
 `);
 
