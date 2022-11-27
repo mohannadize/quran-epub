@@ -13,7 +13,7 @@ const chapters = {};
 
   await page.setDefaultNavigationTimeout(0);
 
-  const url = `https://tanzil.net/#1:1`;
+  const url = `https://tanzil.net/#trans/ar.muyassar/1:1`;
   await page.goto(url);
   await page.waitForNetworkIdle();
 
@@ -35,11 +35,11 @@ const chapters = {};
         console.log(currentTarget.text());
         chapters[chapterCounter] = {
           title: currentTarget.text(),
-          ayas: [],
+          tafsir: [],
         };
       } else {
-        chapters[chapterCounter].ayas = [
-          ...chapters[chapterCounter].ayas,
+        chapters[chapterCounter].tafsir = [
+          ...chapters[chapterCounter].tafsir,
           currentTarget.text(),
         ];
       }
@@ -52,13 +52,13 @@ const chapters = {};
 
   await browser.close();
   fs.writeFileSync(
-    "./src/quranText.json",
+    "./src/tafsirText.json",
     JSON.stringify(
-      Object.entries(chapters).map(([id, { title, ayas }]) => {
+      Object.entries(chapters).map(([id, { title, tafsir }]) => {
         return {
           id,
           title,
-          ayas,
+          tafsir,
         };
       }),
       null,

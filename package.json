@@ -11,6 +11,7 @@
   "author": "Mohanad Hesham",
   "license": "MIT",
   "dependencies": {
+    "cheerio": "1.0.0-rc.12",
     "image-to-uri": "^1.0.0",
     "nodepub-lite": "^1.2.3",
     "puppeteer": "16.2"

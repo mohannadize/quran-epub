@@ -2,25 +2,28 @@ const fs = require("fs");
 const NodepubLite = require("nodepub-lite");
 const imageToUri = require("image-to-uri");
 
-const titleSVGBackground = fs.readFileSync("./src/surah-header.svg", {
-  encoding: "utf-8",
-});
 const quran = JSON.parse(
   fs.readFileSync("./src/quranText.json", {
     encoding: "utf-8",
   })
 );
 
-const FONTSCSS = new Array(604)
-  .fill(0)
-  .map((_, i) => {
-    const pageNumber = i + 1;
-    return `@font-face {
-  font-family: page_${pageNumber};
-  src: url(../fonts/page_${pageNumber}.otf);
-}`;
+const tafsir = JSON.parse(
+  fs.readFileSync("./src/tafsirText.json", {
+    encoding: "utf-8",
   })
-  .join("\n");
+);
+
+const combined = quran.map((data, i) => ({
+  ...data,
+  tafsir: tafsir[i].tafsir,
+}));
+
+const appendix = JSON.parse(
+  fs.readFileSync("./src/appendix.json", {
+    encoding: "utf-8",
+  })
+);
 
 const metadata = {
   title: "Quran",
@@ -30,103 +33,136 @@ const metadata = {
     name: "cover.jpg",
     data: imageToUri("./src/cover.jpg"),
   },
-  fonts: new Array(604).fill(0).map((_, i) => {
-    const name = `page_${i + 1}.otf`;
-
-    return {
-      name,
-      data: fs.readFileSync(`./src/fonts/${name}`),
+  fonts: [
+    {
+      name: "me_quran.otf",
+      data: fs.readFileSync("./src/fonts/me_quran.otf"),
       type: "application/font-sfnt",
-    };
-  }),
+    },
+  ],
 };
 
 const book = new NodepubLite(metadata);
 
-// book.addCSS(FONTSCSS);
-
 book.addCSS(`
+@font-face {
+  font-family: me_quran;
+  src: url("../fonts/me_quran.otf");
+}
+
 body {
   font-size: 20px;
+  padding: 10px;
 }
 
 .chapter-title {
-  min-height: 50px;
-  max-width: 60vw;
-  margin: auto;
-  box-sizing: border-box;
-  position: relative;
+  font-family: me_quran;
+  text-align: center;
   margin-top: 20px;
   margin-bottom: 40px;
+  font-size: 1.6em;
 }
 
-.chapter-title > * {
-  position: absolute;
-  height: 100%;
-  display: block;
-  transform: translateX(-50%) translateY(-50%);
-  left: 50%;
-  top: 50%;
-}
-
-.chapter-title>svg:last-child {
-  height: 100%;
-  fill: currentColor !important
+.chapter-title {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  font-size: 1.6em;
 }
 
 path {
   stroke: currentColor !important;
 }
 
-p {
-  text-align:center;
-  width: 80vmin;
-  max-width: 100%;
+p.quranText {
+  font-family: me_quran;
+  text-align: justify;
   margin: auto;
+  line-height: 2;
   text-indent: 0;
+}
+
+p.normalText {
+  text-align: justify;
+  line-height: initial;
+}
+
+a.aya {
+  all: inherit;
+  display: inline;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 `);
 
-quran.forEach(({ id, title, titleSVG, ayas }) => {
-  const pagesOfChapter = [...new Set(ayas.map(({ page }) => page))];
-
-  const css = `
-  @font-face {
-    font-family: page_1;
-    src: url("../fonts/page_1.otf");
-  }
-  ${pagesOfChapter
-    .map(
-      (page) => `
-  @font-face {
-    font-family: ${page};
-    src: url("../fonts/${page}.otf");
-  }
-  `
-    )
-    .join("\n")}
-  `;
-
-  const content = `<div class="chapter-title">
-  ${titleSVG}
-  </div>
+quran.forEach(({ id, title, ayas }) => {
+  const content = `<h2 class="chapter-title">
+  ${title}
+  </h2>
   
   ${
     id == 9 || id == 1
       ? ""
-      : "<p style='font-family: page_1; margin-bottom: 30px; font-size: 1.2em'>ﭑ​ﭒ​ﭓ​ﭔ​</p>"
+      : "<p style='margin-bottom: 30px; font-size: 1.2em; text-align: center' class='quranText'>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>"
   }
   
 
-  <p>
+  <p class='quranText'>
   ${ayas
-    .map(({ page, text }) => {
-      return `<span style="font-family: ${page}">${text}</span>`;
+    .map((text, i) => {
+      return `<a id="aya-${
+        i + 1
+      }" href="chapter-${id}-tafsir.xhtml#aya-${i + 1}-tafsir" class='aya'>${text}</a>`;
     })
     .join("\n")}
+  </p>
+  `;
+
+  book.addSection(title, content, {
+    overrideFilename: `chapter-${id}`,
+  });
+});
+
+appendix.forEach(({ id, title, content }) => {
+  const body = `<h2 class="normal-title">
+  ${title}
+  </h2>
+  
+  <p class='normalText'>
+  ${content.join("\n")}
   </p>`;
 
-  book.addSection(title, content, { css });
+  book.addSection(title, body, {
+    overrideFilename: id,
+  });
+});
+
+tafsir.forEach(({ id, title, tafsir }) => {
+  const content = `<h2 class="chapter-title">
+  ${title}
+  </h2>
+  
+  ${
+    id == 9 || id == 1
+      ? ""
+      : "<p style='margin-bottom: 30px; font-size: 1.2em; text-align: center' class='quranText'>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>"
+  }
+  
+
+  <p class='quranText'>
+  ${tafsir
+    .map((text, i) => {
+      return `<a id="aya-${
+        i + 1
+      }-tafsir" href="chapter-${id}.xhtml#aya-${i + 1}" class="aya">${text}</a>`;
+    })
+    .join("\n")}
+  </p>
+  `;
+
+  book.addSection(title, content, {
+    overrideFilename: `chapter-${id}-tafsir`,
+  });
 });
 
 book.createEPUB(`./dist/Quran`);
